@@ -1,3 +1,19 @@
+/**
+ * Author: Hunor Debreczeni
+ * Group: 30423
+ *
+ *  Assignment Specification:   Implement correctly and efficiently two methods for building a heap,
+ *                               namely the bottom­up and the top­down strategies.
+ *                              Additionally, you have to implement heapsort.
+ *                                  Implement and exemplify correctness
+ *                                  Comparative analysis of the two build heap methods, in the average case
+ *                                  Interpretations, advantages/disadvantages of each approach
+ *
+ *  Conclusions:
+ *
+ *      
+ */
+
 #include <iostream>
 #include "Profiler.h"
 
@@ -59,11 +75,6 @@ void maxHeapifyBottom(int *a, int i, int n, Operation op) {
     //op.count(2);
 }
 
-/**
- * Works as bottom up
- * @param a
- * @param n
- */
 void buildMaxHeapBottomUp(int a[], int n, Operation op) {
     for (int i = n / 2; i >= 0; i--) {
         maxHeapifyBottom(a, i, n, op);
@@ -81,11 +92,13 @@ void heapSort(int a[], int n, Operation op) {
 
 void maxHeapifyTop(int *array, int i, Operation op) {
     int parentIndex = getParentIndex(i);
+    op.count();
     while (parentIndex != -1 && array[parentIndex] < array[i]) {
-        op.count(4);
+        op.count(5);
         swap(array[parentIndex], array[i]);
         i = parentIndex;
         parentIndex = getParentIndex(i);
+        op.count(2);
     }
     if(parentIndex != -1){
         op.count();
@@ -103,18 +116,6 @@ void buildMaxHeapTopDown(int source[], int n, Operation op) {
         source[i] = result[i];
     }
 }
-
-
-//void test(int n) {
-//    int testArray[n];
-//    FillRandomArray(testArray, n, 1, 10, true, 1);
-//    printArray(testArray, n);
-//    cout << endl;
-//    buildMaxHeapBottomUp(testArray, n);
-//    //heapSort(testArray, n);
-//    //buildMaxHeapTopDown(testArray, n);
-//    printArray(testArray, n);
-//}
 
 void exemplifyCorrectness(int n) {
     int testArray[MAX_HEAP_SIZE];
@@ -172,16 +173,30 @@ void averageCase(int n) {
     }
 }
 
+void bestCase(int n){
+    int testArray[MAX_HEAP_SIZE];
+    FillRandomArray(testArray, n, 1, 100, false, 2);
+    int a[MAX_HEAP_SIZE];
+    int b[MAX_HEAP_SIZE];
+    CopyArray(a, testArray, MAX_HEAP_SIZE);
+    CopyArray(b, testArray, MAX_HEAP_SIZE);
+    Operation bestCaseBottomUp = profiler.createOperation("Best Case Bottom Up", n);
+    Operation bestCaseTopDown = profiler.createOperation("Best Case Top Down", n);
+    buildMaxHeapBottomUp(a, n, bestCaseBottomUp);
+    buildMaxHeapTopDown(b, n, bestCaseTopDown);
+}
+
 void runTests() {
     for (int i = 100; i <= 10000; i += 100) {
-        cout << i << endl;
         worstCase(i);
         averageCase(i);
+        bestCase(i);
     }
     profiler.divideValues("Average Case Bottom Up", 5);
     profiler.divideValues("Average Case Top Down", 5);
     profiler.createGroup("Average Case", "Average Case Bottom Up", "Average Case Top Down");
     profiler.createGroup("Worst Case", "Worst Case Bottom Up", "Worst Case Top Down");
+    profiler.createGroup("Best Case", "Best Case Bottom Up", "Best Case Top Down");
     profiler.showReport();
 }
 
