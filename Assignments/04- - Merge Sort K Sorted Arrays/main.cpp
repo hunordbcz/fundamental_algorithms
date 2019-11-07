@@ -1,98 +1,120 @@
+/**
+ * Author: Hunor Debreczeni
+ * Group: 30423
+ *
+ *
+ *      *Merge K Sorted Arrays*
+ *       N   - Length of final Array
+ *       K   - Number of Arrays
+ *       N/K - Length of initial Arrays
+ *
+ *          Algorithm:
+ *              In the first part, we take the first element from the k arrays and make a min-heap from it, so we can
+ *               easily get the smallest value and insert it into our result array.
+ *              We fill up the heap with double pairs, so we have 3 informations about a value:
+ *                  The value
+ *                  The index of the Array in the Vector
+ *                  The index of the Value in the Array
+ *              They are compared according to the value.
+ *              In case we insert one value in the result array, we have to remove it, but to make the program run faster,
+ *               we replace it with the next value and run a heapify on it. With this method, we don't have to run heapify
+ *               twice, only once.
+ *              The next value comes from the same array, but the next smallest one. If there are no more values in the given
+ *               array, then we just simply delete it and run heapify on the array.
+ *              After each iteration, it's checked if the heap isn't empty, and if it is, then all the elements are already
+ *               inside the result array, and also sorted, so the program is done.
+ *
+ *          Run Time:
+ *              Each insert/ delete is done in O(log k) time, due to the heapify algorithm and due to we work with k elements
+ *              We have k arrays with n/k length, so that makes k*n/k inserts/ deletes for the heap -> it takes O(n) time
+ *              For almost each element we make only one insert and heapify, because it swaps the old minimum with itself,
+ *               by that we make our program 2 times faster, otherwise the insertions/ deletes would take O(2n) time.
+ *               It equals with O(n), but it's a nice thing to have.
+ *              In conclusion we have O(n * log(k))
+ *
+ *
+ *
+ */
+
 #include <iostream>
 #include <vector>
-
 #include "Profiler.h"
 
 Profiler profiler("QuickSort Advanced Analysis");
 
 using namespace std;
 
-typedef pair<int, pair<int, int>> triplePair;
-
-bool verifyIndex(int i, int n) {
-    if (i < 0) return false;
-    return i < n;
-}
+/** .first          -> Value
+ *  .second         -> Index of Array in Vector
+ *  .second.second  -> Index of Value in Array
+ */
+typedef pair<int, pair<int, int>> doublePair;
 
 int getParentIndex(int i) {
-    if (i == 0) return -1;
-    if (i % 2 == 1) {
-        return i >> 1;
-    }
-    return --i >> 1;
+    return (i - 1) / 2;
 }
 
 int getLeftChildIndex(int i) {
-    int key = i << 1;
-    return key + 1;
+    return (2 * i + 1);
 }
 
 int getRightChildIndex(int i) {
-    int key = i << 1;
-    return key + 2;
+    return (2 * i + 2);
 }
 
-void minHeapifyBottom(vector<triplePair> &data, int i, int n, Operation op) {
+void heapifyDown(vector<doublePair> &data, int i, Operation op) {
     int leftChildIndex = getLeftChildIndex(i);
     int rightChildIndex = getRightChildIndex(i);
-    op.count(2);
-    if (verifyIndex(rightChildIndex, n) && (data[rightChildIndex].first < data[i].first) &&
-        (data[rightChildIndex].first < data[leftChildIndex].first)) {
+    op.count(1);
+    if (rightChildIndex < data.size() && (data[rightChildIndex] < data[i]) &&
+        (data[rightChildIndex] < data[leftChildIndex])) {
         data[rightChildIndex].swap(data[i]);
-//        swap(data[rightChildIndex], data[i]);
         op.count(3);
-        minHeapifyBottom(data, rightChildIndex, n, op);
+        heapifyDown(data, rightChildIndex, op);
     } else {
-        op.count(1);
-        if (verifyIndex(leftChildIndex, n) && data[leftChildIndex].first < data[i].first) {
-//            swap(data[leftChildIndex], data[i]);
+        if (leftChildIndex < data.size() && data[leftChildIndex] < data[i]) {
+            op.count(1);
             data[leftChildIndex].swap(data[i]);
             op.count(3);
-            minHeapifyBottom(data, leftChildIndex, n, op);
+            heapifyDown(data, leftChildIndex, op);
+        } else if (leftChildIndex < data.size()) {
+            op.count(1);
         }
     }
 }
 
-triplePair popFront(vector<triplePair> &data, Operation op) {
-    triplePair pair = data[0];
-    data[0].swap(data[data.size()-1]);
-//    swap(data[0], data[data.size() - 1]);
+void pop(vector<doublePair> &data, Operation op) {
+//    doublePair pair = data[0];
+//    op.count();
+    data[0].swap(data[data.size() - 1]);
     op.count(3);
     data.pop_back();
-    minHeapifyBottom(data, 0, data.size() - 1, op);
-    return pair;
+    heapifyDown(data, 0, op);
+//    return pair;
 }
 
-void minHeapifyTop(vector<triplePair> &data, int i, int n, Operation op) {
+void heapifyUp(vector<doublePair> &data, int i, Operation op) {
     int parentIndex = getParentIndex(i);
-    if(parentIndex != -1 && data[parentIndex].first < data[i].first){
+    if (parentIndex != -1 && data[parentIndex] > data[i]) {
+        op.count(1);
         data[parentIndex].swap(data[i]);
-        minHeapifyTop(data,parentIndex,n,op);
+        op.count(3);
+        heapifyUp(data, parentIndex, op);
+    } else if (parentIndex == -1) {
+        op.count(1);
     }
 }
 
-
-void push(vector<triplePair> &data, triplePair what, Operation op) {
-    data.push_back(what);
-    op.count();
-    minHeapifyTop(data,0,data.size()-1,op);
-//    int i = data.size() - 1;
-//    int parentIndex = getParentIndex(i);
-//    op.count();
-//    while (parentIndex != -1 && data[parentIndex].first > data[i].first) {
-//        op.count(5);
-//        swap(data[parentIndex], data[i]);
-//        i = parentIndex;
-//        parentIndex = getParentIndex(i);
-//    }
-//    if (parentIndex != -1) {
-//        op.count();
-//    }
+void switchFirst(vector<doublePair> &data, doublePair what, Operation op) {
+    data[0].swap(what);
+    heapifyDown(data, 0, op);
+//    data.push_back(what);
+//    heapifyUp(data, data.size() - 1, op);
 }
 
-void printArray(int array[], int n) {
-    for (int i = 0; i < n; i++) {
-        cout << array[i] << " ";
+void printVector(vector<int> data) {
+    for (int i : data) {
+        cout << i << " ";
     }
     cout << endl;
 }
@@ -104,59 +126,80 @@ vector<int> fillVector(int size, int range_min, int range_max, bool unique, int 
     return data;
 }
 
-vector<triplePair> makeHeap(vector<vector<int>> arrays, int k, Operation op) {
-    vector<triplePair> heap;
+vector<doublePair> makeHeap(vector<vector<int>> arrays, int k, Operation op) {
+    vector<doublePair> heap;
+    heap.reserve(k);
     for (int i = 0; i < k; i++) {
         heap.push_back({arrays[i][0], {i, 0}});
     }
     for (int i = k / 2; i >= 0; i--) {
-        minHeapifyBottom(heap, i, k, op);
+        heapifyDown(heap, i, op);
     }
     return heap;
 }
 
-
 vector<int> mergeKSortedArrays(vector<vector<int>> arrays, int k, Operation op) {
     vector<int> result;
-    vector<triplePair> heap = makeHeap(arrays, k, op);
-    for (auto &i : heap) {
-        cout << i.first << " ";
-    }
-    cout << endl;
+    vector<doublePair> heap = makeHeap(arrays, k, op);
+    op.count();
     while (!heap.empty()) {
-
-        triplePair smallest = popFront(heap, op);
-        result.push_back(smallest.first);
-        int i = smallest.second.first;
-        int j = smallest.second.second;
-
-        if (j + 1 < arrays[i].size()){
-            push(heap, {arrays[i][j + 1], {i, j + 1}}, op);
+        doublePair min = heap.at(0);
+        result.push_back(min.first);
+        int i = min.second.first;
+        int j = min.second.second;
+        if (j + 1 < arrays[i].size()) {
+            switchFirst(heap, {arrays[i].at(j + 1), {i, j + 1}}, op);
+        } else {
+            pop(heap, op);
         }
-
-        for (auto &i : heap) {
-            cout << i.first << " ";
-        }
-        cout << endl;
     }
-
     return result;
 }
 
-int main() {
-//    vector<int> data = fillVector(10, 1, 10, true, 2);
-//    swap(data[0], data[1]);
-    vector<vector<int>> data{{2,  6,  12},
-                             {1,  9},
-                             {10, 34, 90, 2000},
-                             {9,  34, 90, 2000},
-                             {8,  34, 90, 2000},
-                             {7,  34, 90, 2000},
-    };
+void exemplifyCorrectness(int n, int k) {
+    vector<vector<int>> data;
+    for (int i = 0; i < k; i++) {
+        vector<int> temp = fillVector(n, 1, 100, false, 1);
+        printVector(temp);
+        data.push_back(temp);
+    }
     Operation dummy = profiler.createOperation("Dummy", 10);
     vector<int> result = mergeKSortedArrays(data, data.size(), dummy);
-    for (auto i = result.begin(); i != result.end(); ++i) {
-        cout << *i << " ";
+    cout << "Result:" << endl;
+    printVector(result);
+}
+
+void generateChart(int n, int k, Operation op) {
+    vector<vector<int>> data;
+    for (int i = 0; i < k; i++) {
+        vector<int> temp = fillVector(n, 1, 50000, false, 1);
+        data.push_back(temp);
     }
+    vector<int> result = mergeKSortedArrays(data, data.size(), op);
+}
+
+void runTests() {
+    for (int n = 100; n <= 10000; n += 100) {
+        Operation kFive = profiler.createOperation("Five Arrays", n);
+        Operation kTen = profiler.createOperation("Ten Arrays", n);
+        Operation kHundred = profiler.createOperation("Hundred Arrays", n);
+        generateChart(n / 5, 5, kFive);
+        generateChart(n / 10, 10, kTen);
+        generateChart(n / 100, 100, kHundred);
+//        cout << n << endl;
+    }
+    for (int k = 10; k <= 500; k += 10) {
+        Operation nFixed = profiler.createOperation("10.000 Array Size", k);
+        generateChart(10000 / k, k, nFixed);
+//        cout << k << endl;
+    }
+    profiler.createGroup("Fixed Array Numbers - Different Array Size", "Five Arrays", "Ten Arrays", "Hundred Arrays");
+    profiler.createGroup("Different Array Numbers - Fixed Array Size", "10.000 Array Size");
+    profiler.showReport();
+}
+
+int main() {
+    runTests();
+    exemplifyCorrectness(20, 4);
     return 0;
 }
