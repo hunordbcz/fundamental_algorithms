@@ -1,8 +1,10 @@
 #include <iostream>
-#include <random>
-#include <time.h>
+#include <ctime>
+#include "Profiler.h"
 
 using namespace std;
+
+Profiler profiler("Dynamic Order Statistics");
 
 typedef struct BinaryTreeNode {
     int key;
@@ -18,28 +20,37 @@ BTNode *newNode(int key, int size) {
     return node;
 }
 
-BTNode *buildBST(int low, int high) {
+BTNode *buildBST(int low, int high, Operation op) {
+    op.count();
     if (low > high) return nullptr;
+    op.count();
     int mid = (low + high) / 2;
+    op.count();
     BTNode *root = newNode(mid, high - low + 1);
-    root->left = buildBST(low, mid - 1);
-    root->right = buildBST(mid + 1, high);
+    op.count();
+    root->left = buildBST(low, mid - 1, op);
+    op.count();
+    root->right = buildBST(mid + 1, high, op);
     return root;
 }
 
-BTNode *buildTree(int n) {
+BTNode *buildTree(int n, Operation op) {
     if (!n) return nullptr;
-    return buildBST(1, n);
+    op.count();
+    return buildBST(1, n, op);
 }
 
-BTNode *osSelect(BTNode *root, int i) {
-    if (root == nullptr) return nullptr;
+BTNode *osSelect(BTNode *root, int i, Operation op) {
+    op.count();
+    if (root == nullptr) return root;
 
     int currentOrder;
-    if (root->left == nullptr ) {
-        if(root->right == nullptr){
+    op.count();
+    if (root->left == nullptr) {
+        op.count();
+        if (root->right == nullptr) {
             currentOrder = 1;
-        }else{
+        } else {
             currentOrder = root->right->size;
         }
     } else {
@@ -49,20 +60,23 @@ BTNode *osSelect(BTNode *root, int i) {
     if (currentOrder == i) {
         return root;
     } else if (i < currentOrder) {
-        return osSelect(root->left, i);
+        return osSelect(root->left, i, op);
     } else {
-        return osSelect(root->right, i - currentOrder);
+        return osSelect(root->right, i - currentOrder, op);
     }
 }
 
-BTNode *osDelete(BTNode *root, int i) {
-    if (root == nullptr) return nullptr;
+BTNode *osDelete(BTNode *root, int i, Operation op) {
+    op.count();
+    if (root == nullptr) return root;
 
     int currentOrder;
-    if (root->left == nullptr ) {
-        if(root->right == nullptr){
+    op.count();
+    if (root->left == nullptr) {
+        op.count();
+        if (root->right == nullptr) {
             currentOrder = 1;
-        }else{
+        } else {
             currentOrder = root->right->size;
         }
     } else {
@@ -71,47 +85,67 @@ BTNode *osDelete(BTNode *root, int i) {
 
     if (currentOrder > i) {
         //Element in the left part
+        op.count();
         root->size--;
-        root->left = osDelete(root->left, i);
+        root->left = osDelete(root->left, i, op);
         return root;
     } else if (currentOrder < i) {
         //Element in the right part
+        op.count();
         root->size--;
-        root->right = osDelete(root->right, i - currentOrder);
+        root->right = osDelete(root->right, i - currentOrder, op);
         return root;
     } else {
         //Element found, delete it
-        if (root->left == nullptr) {            //1 or 0 nodes
+        op.count();
+        if (root->left == nullptr) {
+            op.count();//1 or 0 nodes
             BTNode *temp = root->right;
             free(root);
             return temp;
-        } else if (root->right == nullptr) {    //1 or 0 nodes
-            BTNode *temp = root->left;
-            free(root);
-            return temp;
-        } else {                                //2 nodes
-            BTNode *swapWithParent, *swapWith = root->right;
-            do {
-                swapWith->size--;
-                swapWithParent = swapWith;
-                swapWith = swapWith->left;
-            } while (swapWith->left != nullptr);
-
-            root->key = swapWith->key;
-            root->size--;
-            swapWithParent->left = nullptr;
-            free(swapWith);
-            return root;
+        } else {
+            op.count();
+            if (root->right == nullptr) {    //1 or 0 nodes
+                op.count();
+                BTNode *temp = root->left;
+                free(root);
+                return temp;
+            } else {                                //2 nodes
+                op.count(2);
+                BTNode *swapWithParent = root, *swapWith = root->right;
+                while (swapWith->left != nullptr) {
+                    op.count(4);
+                    swapWith->size--;
+                    swapWithParent = swapWith;
+                    swapWith = swapWith->left;
+                }
+                op.count();
+                root->key = swapWith->key;
+                op.count();
+                root->size--;
+                op.count();
+                if (swapWithParent != root) {
+                    op.count();
+                    swapWithParent->left = swapWith->right;
+                } else {
+                    op.count();
+                    root->right = swapWith->right;
+                }
+                free(swapWith);
+                return root;
+            }
         }
     }
 }
 
-void runTests() {
-    for (int i = 100; i <= 10000; i += 100) {
-        for (int repeat = 0; repeat < 5; repeat++) {
-
-        }
-    }
+BTNode *copyBT(BTNode *root) {
+    if (root == nullptr) return nullptr;
+    auto *temp = new BTNode;
+    temp->key = root->key;
+    temp->size = root->size;
+    temp->left = copyBT(root->left);
+    temp->left = copyBT(root->right);
+    return temp;
 }
 
 void printPreOrder(BTNode *root, int level) {
@@ -129,28 +163,53 @@ void printPreOrder(BTNode *root, int level) {
     }
 }
 
-void demo(int n) {
-    srand (time(NULL));
-
-    BTNode *root = buildTree(n);
+void print(BTNode *root) {
     printPreOrder(root, 0);
-    cout<<endl;
+    cout << endl;
+}
+
+void runTests() {
+    for (int n = 100; n <= 10000; n += 100) {
+        for (int repeat = 0; repeat < 5; repeat++) {
+            Operation buildOp = profiler.createOperation("Build", n);
+            Operation selectOp = profiler.createOperation("Select", n);
+            Operation deleteOp = profiler.createOperation("Delete", n);
+            BTNode *temp = buildTree(n, buildOp);
+            for (int i = 0; i < n; i++) {
+                int index = rand() % n + 1;
+                osSelect(temp, index, selectOp);
+                osDelete(temp, index, deleteOp);
+            }
+        }
+    }
+    profiler.divideValues("Build", 5);
+    profiler.divideValues("Select", 5);
+    profiler.divideValues("Delete", 5);
+    profiler.createGroup("Group", "Build", "Select", "Delete");
+    profiler.showReport();
+}
+
+void demo(int n) {
+    srand(time(nullptr));
+    Operation dummy = profiler.createOperation("Dummy", 0);
+    cout << "Tree after Build:" << endl;
+    BTNode *root = buildTree(n, dummy);
+    print(root);
 
     int index;
     for (int i = 0; i < 3; i++) {
         index = rand() % n + 1;
-        cout<<index<<endl;
-        printPreOrder(osSelect(root, index), 0);
-        cout<<endl;
+        cout << "Selected: " << index << ". element" << endl;
+        print(osSelect(root, index, dummy));
     }
-    index = rand() % n + 1;
-//    root = osDelete(root, index);
-    printPreOrder(root, 0);
-    cout<<endl;
+    index = rand() % n + 1;;
+    cout << "To be deleted: " << index << ". element" << endl;
+    osDelete(root, index, dummy);
+    print(root);
 }
 
 int main() {
+    runTests();
     demo(11);
-//    runTests();
     return 0;
 }
