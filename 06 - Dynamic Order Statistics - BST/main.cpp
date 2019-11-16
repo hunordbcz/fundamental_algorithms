@@ -96,53 +96,52 @@ BTNode *osDelete(BTNode *root, int i, Operation op) {
         root->size--;
         root->left = osDelete(root->left, i, op);
         return root;
-    } else if (currentOrder < i) {
+    }
+    if (currentOrder < i) {
         //Element in the right part
         op.count();
         root->size--;
         root->right = osDelete(root->right, i - currentOrder, op);
         return root;
-    } else {
-        //Element found, delete it
-        op.count();
-        if (root->left == nullptr) {
-            op.count();//1 or 0 nodes
-            BTNode *temp = root->right;
-            free(root);
-            return temp;
-        } else {
-            op.count();
-            if (root->right == nullptr) {    //1 or 0 nodes
-                op.count();
-                BTNode *temp = root->left;
-                free(root);
-                return temp;
-            } else {                                //2 nodes
-                op.count(2);
-                BTNode *swapWithParent = root, *swapWith = root->right;
-                while (swapWith->left != nullptr) {
-                    op.count(4);
-                    swapWith->size--;
-                    swapWithParent = swapWith;
-                    swapWith = swapWith->left;
-                }
-                op.count();
-                root->key = swapWith->key;
-                op.count();
-                root->size--;
-                op.count();
-                if (swapWithParent != root) {
-                    op.count();
-                    swapWithParent->left = swapWith->right;
-                } else {
-                    op.count();
-                    root->right = swapWith->right;
-                }
-                free(swapWith);
-                return root;
-            }
-        }
     }
+
+    //Element found, delete it
+    op.count();
+    if (root->left == nullptr) {
+        op.count();//1 or 0 nodes
+        BTNode *temp = root->right;
+        free(root);
+        return temp;
+    }
+    op.count();
+    if (root->right == nullptr) {    //1 or 0 nodes
+        op.count();
+        BTNode *temp = root->left;
+        free(root);
+        return temp;
+    }                                //2 nodes
+    op.count(2);
+    BTNode *swapWithParent = root, *swapWith = root->right;
+    while (swapWith->left != nullptr) {
+        op.count(4);
+        swapWith->size--;
+        swapWithParent = swapWith;
+        swapWith = swapWith->left;
+    }
+    op.count();
+    root->key = swapWith->key;
+    op.count();
+    root->size--;
+    op.count();
+    if (swapWithParent != root) {
+        op.count();
+        swapWithParent->left = swapWith->right;
+    } else {
+        op.count();
+        root->right = swapWith->right;
+    }
+    free(swapWith);
+    return root;
 }
 
 void printPreOrder(BTNode *root, int level) {
