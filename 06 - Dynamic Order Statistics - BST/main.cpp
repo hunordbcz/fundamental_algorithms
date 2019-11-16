@@ -66,11 +66,11 @@ BTNode *osSelect(BTNode *root, int i, Operation op) {
 
     if (currentOrder == i) {
         return root;
-    } else if (i < currentOrder) {
-        return osSelect(root->left, i, op);
-    } else {
-        return osSelect(root->right, i - currentOrder, op);
     }
+    if (i < currentOrder) {
+        return osSelect(root->left, i, op);
+    }
+    return osSelect(root->right, i - currentOrder, op);
 }
 
 BTNode *osDelete(BTNode *root, int i, Operation op) {
