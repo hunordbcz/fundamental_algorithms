@@ -145,16 +145,6 @@ BTNode *osDelete(BTNode *root, int i, Operation op) {
     }
 }
 
-BTNode *copyBT(BTNode *root) {
-    if (root == nullptr) return nullptr;
-    auto *temp = new BTNode;
-    temp->key = root->key;
-    temp->size = root->size;
-    temp->left = copyBT(root->left);
-    temp->left = copyBT(root->right);
-    return temp;
-}
-
 void printPreOrder(BTNode *root, int level) {
     if (root == nullptr) return;
     cout << "|";
