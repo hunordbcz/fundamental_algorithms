@@ -1,3 +1,10 @@
+/*
+ *  Author: Hunor Debreczeni
+ *
+ *  Group: 30423
+ *
+ */
+
 #include <iostream>
 #include <ctime>
 #include "Profiler.h"
