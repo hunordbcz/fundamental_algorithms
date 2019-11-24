@@ -1,14 +1,11 @@
 #include <iostream>
 #include <vector>
-#include "Profiler.h"
 
 using namespace std;
 
-Profiler profiler("Multi Way Tree");
-
 typedef struct multiWayTreeNode {
     int key;
-    vector<struct multiWayTreeNode> children;
+    vector<struct multiWayTreeNode *> children;
 } multiWayTreeNode;
 
 typedef struct binaryTreeNode {
@@ -17,9 +14,9 @@ typedef struct binaryTreeNode {
     struct binaryTreeNode *right;
 } binaryTreeNode;
 
-multiWayTreeNode pop_front(vector<multiWayTreeNode> &vect) {
+multiWayTreeNode *pop_front(vector<multiWayTreeNode *> &vect) {
     if (vect.size()) {
-        multiWayTreeNode response = vect[0];
+        multiWayTreeNode *response = vect[0];
         vect.erase(vect.begin());
         return response;
     }
@@ -40,42 +37,41 @@ binaryTreeNode *newBinaryNode(int key) {
     return node;
 }
 
-vector<multiWayTreeNode> parentToMultiWayRec(vector<int> parentRepr, int key) {
-    vector<multiWayTreeNode> temp;
-    for (int i = 1; i < parentRepr.size(); i++) {
-        if (parentRepr[i] == key) {
-            multiWayTreeNode root = *newMultiWayNode(i);
-            root.children = parentToMultiWayRec(parentRepr, i);
-            temp.push_back(root);
-        }
+vector<multiWayTreeNode *> initialize(int n) {
+    vector < multiWayTreeNode * > tree;
+    tree.reserve(n);
+    for (int i = 0; i < n; i++) {
+        tree.push_back(newMultiWayNode(i));
     }
-    return temp;
+    return tree;
 }
 
 multiWayTreeNode *parentToMultiWay(vector<int> parentRepr) {
+    vector < multiWayTreeNode * > tree = initialize(parentRepr.size());
+    int root = -1;
     for (int i = 1; i < parentRepr.size(); i++) {
-        if (parentRepr[i] == -1) {
-            multiWayTreeNode *root = newMultiWayNode(i);
-            root->children = parentToMultiWayRec(parentRepr, i);
-            return root;
+        if (parentRepr[i] != -1) {
+            tree[parentRepr[i]]->children.push_back(tree[i]);
+        } else {
+            root = i;
         }
     }
-    return nullptr;
+    return tree[root];
 }
 
-binaryTreeNode *multiWayToBinary(multiWayTreeNode *root, vector<multiWayTreeNode> siblings) {
+binaryTreeNode *multiWayToBinary(multiWayTreeNode *root, vector<multiWayTreeNode *> siblings) {
     if (!root) {
         return nullptr;
     }
     binaryTreeNode *temp = newBinaryNode(root->key);
     if (!siblings.empty()) {
-        multiWayTreeNode firstSibling = pop_front(siblings);
-        temp->right = multiWayToBinary(&firstSibling, siblings);
+        multiWayTreeNode *firstSibling = pop_front(siblings);
+        temp->right = multiWayToBinary(firstSibling, siblings);
     }
     if (!root->children.empty()) {
-        vector<multiWayTreeNode> children = root->children;
-        multiWayTreeNode firstChild = pop_front(children);
-        temp->left = multiWayToBinary(&firstChild, children);
+        vector < multiWayTreeNode * > children = root->children;
+        multiWayTreeNode *firstChild = pop_front(children);
+        temp->left = multiWayToBinary(firstChild, children);
     }
     return temp;
 }
@@ -98,7 +94,7 @@ void printPreBinary(binaryTreeNode *root, int level) {
     }
 }
 
-void printPreMulti(multiWayTreeNode *root, vector<multiWayTreeNode> siblings, int level) {
+void printPreMulti(multiWayTreeNode *root, vector<multiWayTreeNode *> siblings, int level) {
     if (root == nullptr) return;
     for (int i = 0; i < level; i++) {
         if (i == level - 1) {
@@ -109,13 +105,13 @@ void printPreMulti(multiWayTreeNode *root, vector<multiWayTreeNode> siblings, in
     }
     cout << root->key << "\n";
     if (!root->children.empty()) {
-        vector<multiWayTreeNode> children = root->children;
-        multiWayTreeNode firstChild = pop_front(children);
-        printPreMulti(&firstChild, children, level + 1);
+        vector < multiWayTreeNode * > children = root->children;
+        multiWayTreeNode *firstChild = pop_front(children);
+        printPreMulti(firstChild, children, level + 1);
     }
     if (!siblings.empty()) {
-        multiWayTreeNode firstSibling = pop_front(siblings);
-        printPreMulti(&firstSibling, siblings, level);
+        multiWayTreeNode *firstSibling = pop_front(siblings);
+        printPreMulti(firstSibling, siblings, level);
     }
 }
 
@@ -130,7 +126,6 @@ void printParental(vector<int> data) {
     for (int i = 1; i < data.size(); i++) {
         cout << i << " ";
     }
-
     cout << endl;
 }
 
@@ -146,7 +141,7 @@ void printBinary(binaryTreeNode *root) {
     cout << endl;
 }
 
-void demo(int n) {
+void demo() {
     vector<int> parentRepr = {0, 2, 7, 5, 2, 7, 7, -1, 5, 2};
     multiWayTreeNode *multiWayRoot = parentToMultiWay(parentRepr);
     binaryTreeNode *binaryRoot = multiWayToBinary(multiWayRoot, {});
@@ -155,8 +150,7 @@ void demo(int n) {
     printBinary(binaryRoot);
 }
 
-
 int main() {
-    demo(10);
+    demo();
     return 0;
 }
