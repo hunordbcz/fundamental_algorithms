@@ -5,7 +5,7 @@
  *
  *      *Build Tree*
  *          Logic:
- *              Used a Divide Et Impera algorith, started from the middle, and kept going left/right.
+ *              Used a Divide Et Impera algorithm, started from the middle, and kept going left/right.
  *              For initializing the size of the current root, we used the size of the array, since that's the size we need.
  *          Complexity:
  *              Since we go through each element from 1 to n, it takes O(n) time to do it.
@@ -224,14 +224,20 @@ void demo(int n) {
         cout << "Selected: " << index << ". element" << endl;
         print(osSelect(root, index, dummy));
     }
-    index = rand() % n + 1;;
-    cout << "To be deleted: " << index << ". element" << endl;
-    osDelete(root, index, dummy);
-    print(root);
+    for (int i = 0; i < 3; i++) {
+        index = rand() % n + 1;
+        cout << "Deleted: " << index << ". element" << endl;
+        print( osDelete(root, index, dummy));
+    }
+    for (int i = 0; i < 3; i++) {
+        index = rand() % n + 1;
+        cout << "Selected: " << index << ". element" << endl;
+        print(osSelect(root, index, dummy));
+    }
 }
 
 int main() {
-    runTests();
+//    runTests();
     demo(11);
     return 0;
 }
