@@ -56,6 +56,9 @@ multiWayTreeNode *parentToMultiWay(vector<int> parentRepr) {
             root = i;
         }
     }
+    if (root == -1) {
+        return nullptr;
+    }
     return tree[root];
 }
 
