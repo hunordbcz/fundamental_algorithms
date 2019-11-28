@@ -1,3 +1,41 @@
+/**
+ *  Author: Hunor Debreczeni
+ *  Group: 30423
+ *
+ *  Transformations between different representations
+ *
+ *      *Parental Representation -> Multi-Way Tree*
+ *          Structure Used for Multi-Way Tree:
+ *              key ->
+ *                  used to remember the node key
+ *              vector of pointers to the other nodes ->
+ *                  used to remember the children of the node
+ *          Algorithm:
+ *              First we initialize a vector of size n with their key and a vector of children with no elements in it.
+ *              We go through all of the elements of the array with the parental representation.
+ *              If we find an element that's value is not -1 ( = not the root node ), then we push the given index node
+ *               to the parent node's children vector.
+ *              If we find the value -1, then we know which one is the root value, so we save it
+ *          Additional Space:
+ *              We don't use any additional space, because we initialize the vector, but later those values become the
+ *               actual elements in the Multi Way Tree
+ *              In conclusion, the space complexity is O(n)
+ *          Complexity:
+ *              We go through each value once, so it makes the time complexity O(n)
+ *      *Multi-Way Tree -> Binary Tree*
+ *          Structure used:
+ *              Default Binary Tree structure
+ *          Algorithm:
+ *              We start from the root. The left node of the tree will be the children of consecutive nodes and the right,
+ *               the root's siblings. In order to remember the siblings, we pass to the recursive call the siblings also,
+ *               and we pop each time the current sibling, so we can always take the first sibling.
+ *          Additional Space:
+ *              There is no additional space used, only the structure is used and it's size.
+ *          Complexity:
+ *              We recursively go through each element, so it makes an O(n) time complexity.
+ *              Space complexity is also O(n).
+ */
+
 #include <iostream>
 #include <vector>
 
