@@ -44,35 +44,36 @@ vector<DSNode *> makeSet(int n, Operation op) {
 
 DSNode *findSet(vector<DSNode *> tree, int i, Operation op) {
     op.count();
-    if (tree[i]->parent == tree[i]) {
-        return tree[i];
+    if (tree[i]->parent != tree[i]) {
+//        return findSet(tree, tree[i]->parent->key, op);
+        op.count();
+        tree[i]->parent = findSet(tree, tree[i]->parent->key, op);   // Another method
     }
-    return findSet(tree, tree[i]->parent->key, op);
+    return tree[i]->parent;
 }
 
-void unionSet(vector<DSNode *> tree, int x, int y, Operation op) {
-    op.count();
-    if (x == y) {
-        return;
-    }
-    op.count(2);
-    DSNode *nodeA = findSet(tree, x, op);
-    DSNode *nodeB = findSet(tree, y, op);
-    op.count();
-    if (nodeA == nodeB) return;
-    op.count();
+bool unionSet(vector<DSNode *> tree, int x, int y, Operation unionOp, Operation findOp) {
+    unionOp.count(2);
+    DSNode *nodeA = findSet(tree, x, findOp);
+    DSNode *nodeB = findSet(tree, y, findOp);
+    unionOp.count();
+    if (nodeA == nodeB) return false;
+    unionOp.count();
     if (nodeA->rank > nodeB->rank) {
-        op.count();
+        unionOp.count();
         nodeB->parent = nodeA;
+        return true;
     } else {
-        op.count();
+        unionOp.count();
         if (nodeA->rank < nodeB->rank) {
             nodeA->parent = nodeB;
-            op.count();
+            unionOp.count();
+            return true;
         } else {
-            op.count();
+            unionOp.count();
             nodeB->parent = nodeA;
             nodeA->rank++;
+            return true;
         }
     }
 }
@@ -98,7 +99,7 @@ void exemplifyCorrectness(int n) {
     for (int i = 0; i < n; i++) {
         int a = rand() % n, b = rand() % n, c = rand() % n;
 
-        unionSet(tree, a, b, dummy);
+        unionSet(tree, a, b, dummy, dummy);
         cout << "\nEach Set after Random Union " << "(" << a << "," << b << "):\n";
         printVectorSet(tree);
         cout << "Random Set " << c << " :";
@@ -109,6 +110,7 @@ void exemplifyCorrectness(int n) {
 Graph *generateConnectedGraph(int n) {
     auto *graph = new struct Graph;
     set <pair<int, int>> addedEdges;
+    addedEdges.insert({-1,-1});
     pair<int, int> edgePair;
     graph->nrVertices = n;
     int i;
@@ -130,10 +132,12 @@ Graph *generateConnectedGraph(int n) {
             edge->vertex.first = a;
             edge->vertex.second = b;
             edgePair = {a, b};
-        } else {
+        } else if (a > b) {
             edge->vertex.first = b;
             edge->vertex.second = a;
             edgePair = {b, a};
+        } else {
+            edgePair = {-1, -1};
         }
         if (addedEdges.insert(edgePair).second) {
             graph->edges.push_back(*edge);
@@ -157,10 +161,14 @@ void kruskal(Graph *graph, int n, Operation findOp, Operation makeOp, Operation 
     sort(graph->edges.begin(), graph->edges.end(), compareByWeight);
 
     for (auto &edge : graph->edges) {
-        int first = edge.vertex.first, second = edge.vertex.second;
-        if (findSet(tree, first, findOp) != findSet(tree, second, findOp)) {
+        if (resultGraph->edges.size() == n - 1) {
+            break;
+        }
+        int first = findSet(tree, edge.vertex.first, findOp)->key,
+                second = findSet(tree, edge.vertex.second, findOp)->key;
+        if (first != second) {
             resultGraph->edges.push_back(edge);
-            unionSet(tree, first, second, unionOp);
+            unionSet(tree, first, second, unionOp, findOp);
         }
     }
 }
