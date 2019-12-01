@@ -166,12 +166,13 @@ void kruskal(Graph *graph, int n, Operation findOp, Operation makeOp, Operation 
 }
 
 void runTests() {
-    Graph *graph = generateConnectedGraph(10);
     for (int n = 100; n <= 10000; n += 100) {
+        cout << n << endl;
         Operation findOp = profiler.createOperation("Find", n);
         Operation makeOp = profiler.createOperation("Make", n);
         Operation unionOp = profiler.createOperation("Union", n);
         Operation totalOp = profiler.createOperation("Total", n);
+        Graph *graph = generateConnectedGraph(n);
         kruskal(graph, n, findOp, makeOp, unionOp);
         totalOp.count(findOp.get() + makeOp.get() + unionOp.get());
     }
