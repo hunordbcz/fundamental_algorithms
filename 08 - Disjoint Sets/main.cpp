@@ -1,3 +1,28 @@
+/**
+ *  Author: Hunor Debreczeni
+ *  Group: 30423
+ *
+ *  Problem spec.: Implement correctly and efficiently the base operations for disjoint set and the Kruskal’s algorithm
+ *
+ *      *Make-Set*
+ *          Makes a vector with n nodes.
+ *          It has a complexity of O(n) in the Kruskal algorithm
+ *
+ *      *Find*
+ *          Recursively finds the parent of a node
+ *          It has a complexity of O(n*log n) in the Kruskal algorithm
+ *
+ *      *Union*
+ *          Finds the parents of both the given values and if they differ, make the parent of the one with the smaller
+ *           rank the other one.
+ *          It has a complexity of O(n*log n) in the Kruskal algorithm
+ *
+ *      *Kruskal*
+ *          Takes a graph, sort the edges according to their weight.
+ *          For each edge, starting from the smallest one, checks if the two vertexes are in a set or not. If not, then
+ *           make them be. We do this until we reach n-1 edges, because that means that we have the MST.
+ */
+
 #include <iostream>
 #include <vector>
 #include <time.h>
