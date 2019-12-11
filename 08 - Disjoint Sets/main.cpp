@@ -58,7 +58,7 @@ DSNode *newNode(int key) {
 }
 
 vector<DSNode *> makeSet(int n, Operation op) {
-    vector<DSNode *> tree;
+    vector < DSNode * > tree;
     tree.reserve(n);
     for (int i = 0; i < n; i++) {
         op.count(3);
@@ -118,24 +118,10 @@ void printVectorSet(vector<DSNode *> tree) {
     cout << endl;
 }
 
-void exemplifyCorrectness(int n) {
-    Operation dummy = profiler.createOperation("Dummy", 0);
-    vector<DSNode *> tree = makeSet(n, dummy);
-    for (int i = 0; i < n; i++) {
-        int a = rand() % n, b = rand() % n, c = rand() % n;
-
-        unionSet(tree, a, b, dummy, dummy);
-        cout << "\nEach Set after Random Union " << "(" << a << "," << b << "):\n";
-        printVectorSet(tree);
-        cout << "Random Set " << c << " :";
-        printSet(findSet(tree, c, dummy));
-    }
-}
-
 Graph *generateConnectedGraph(int n) {
     auto *graph = new struct Graph;
     set <pair<int, int>> addedEdges;
-    addedEdges.insert({-1,-1});
+    addedEdges.insert({-1, -1});
     pair<int, int> edgePair;
     graph->nrVertices = n;
     int i;
@@ -177,8 +163,8 @@ bool compareByWeight(Edge &a, Edge &b) {
     return a.weight < b.weight;
 }
 
-void kruskal(Graph *graph, int n, Operation findOp, Operation makeOp, Operation unionOp) {
-    vector<DSNode *> tree = makeSet(n, makeOp);
+Graph *kruskal(Graph *graph, int n, Operation findOp, Operation makeOp, Operation unionOp) {
+    vector < DSNode * > tree = makeSet(n, makeOp);
 
     auto *resultGraph = new struct Graph;
     resultGraph->nrVertices = n;
@@ -195,6 +181,30 @@ void kruskal(Graph *graph, int n, Operation findOp, Operation makeOp, Operation 
             resultGraph->edges.push_back(edge);
             unionSet(tree, first, second, unionOp, findOp);
         }
+    }
+    return resultGraph;
+}
+
+void exemplifyCorrectness(int n) {
+    Operation dummy = profiler.createOperation("Dummy", 0);
+    vector < DSNode * > tree = makeSet(n, dummy);
+    for (int i = 0; i < n; i++) {
+        int a = rand() % n, b = rand() % n, c = rand() % n;
+
+        unionSet(tree, a, b, dummy, dummy);
+        cout << "\nEach Set after Random Union " << "(" << a << "," << b << "):\n";
+        printVectorSet(tree);
+        cout << "Random Set " << c << " :";
+        printSet(findSet(tree, c, dummy));
+    }
+    Graph *testGraph = generateConnectedGraph(9);
+    for (int i = 0; i < testGraph->edges.size() - 1; i++) {
+        cout<<endl<<testGraph->edges[i].vertex.first<<" "<<testGraph->edges[i].vertex.second<<"("<<testGraph->edges[i].weight<<")";
+    }
+    cout<<endl;
+    testGraph = kruskal(testGraph, 9, dummy, dummy, dummy);
+    for (int i = 0; i < testGraph->nrVertices - 1; i++) {
+        cout<<endl<<testGraph->edges[i].vertex.first<<" "<<testGraph->edges[i].vertex.second<<"("<<testGraph->edges[i].weight<<")";
     }
 }
 
@@ -215,7 +225,7 @@ void runTests() {
 
 int main() {
     srand(time(nullptr));
-    runTests();
+//    runTests();
     exemplifyCorrectness(10);
     return 0;
 }
