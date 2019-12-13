@@ -259,7 +259,7 @@ void print_bfs_tree(Graph *graph)
             tree.push_back(node);
         }
         int root = -1;
-        for (int i = 1; i < n; i++) {
+        for (int i = 0; i < n; i++) {
             if (p[i] != -1) {
                 tree[p[i]]->children.push(tree[i]);
             }
